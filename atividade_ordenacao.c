@@ -145,32 +145,55 @@ static int esta_ordenado(const int *vetor, size_t tamanho) {
     return 1;
 }
 
-static double executar_lote(FuncaoOrdenacao ordenar, const int *original,
-                            int *copia, size_t tamanho, size_t repeticoes) {
+/*
+ * Adaptacao direta da funcao de tempo fornecida no AVA.
+ *
+ * O bloco usa as mesmas variaveis e a mesma formula:
+ * tempo_cpu = ((double)(fim - inicio)) / CLOCKS_PER_SEC;
+ *
+ * A ordenacao e repetida para evitar que vetores pequenos resultem em
+ * 0,000000. A copia restaura a mesma entrada antes de cada execucao.
+ */
+static double medir_lote_com_funcao_do_ava(
+        FuncaoOrdenacao ordenar, const int *original, int *copia,
+        size_t tamanho, size_t repeticoes) {
     size_t repeticao;
-    clock_t inicio = clock();
+    clock_t inicio, fim;
+    double tempo_cpu;
 
+    inicio = clock(); /* Marca o tempo de inicio. */
+
+    /* Trecho de codigo medido. */
     for (repeticao = 0; repeticao < repeticoes; repeticao++) {
         memcpy(copia, original, tamanho * sizeof(int));
         ordenar(copia, tamanho);
     }
 
-    return (double)(clock() - inicio) / CLOCKS_PER_SEC;
+    fim = clock(); /* Marca o tempo de fim. */
+
+    /* Mesma formula fornecida no AVA: resultado em segundos. */
+    tempo_cpu = ((double)(fim - inicio)) / CLOCKS_PER_SEC;
+    return tempo_cpu;
 }
 
-static double medir_copias(const int *original, int *copia,
-                           size_t tamanho, size_t repeticoes) {
+static double medir_tempo_das_copias(const int *original, int *copia,
+                                     size_t tamanho, size_t repeticoes) {
     size_t repeticao;
     volatile int verificador = 0;
-    clock_t inicio = clock();
+    clock_t inicio, fim;
+    double tempo_cpu;
+
+    inicio = clock();
 
     for (repeticao = 0; repeticao < repeticoes; repeticao++) {
         memcpy(copia, original, tamanho * sizeof(int));
         verificador ^= copia[repeticao % tamanho];
     }
 
+    fim = clock();
     (void)verificador;
-    return (double)(clock() - inicio) / CLOCKS_PER_SEC;
+    tempo_cpu = ((double)(fim - inicio)) / CLOCKS_PER_SEC;
+    return tempo_cpu;
 }
 
 static double medir_tempo_ms(FuncaoOrdenacao ordenar, const int *original,
@@ -187,7 +210,7 @@ static double medir_tempo_ms(FuncaoOrdenacao ordenar, const int *original,
     }
 
     do {
-        tempo_total = executar_lote(
+        tempo_total = medir_lote_com_funcao_do_ava(
             ordenar, original, copia, tamanho, repeticoes);
         if (tempo_total >= TEMPO_MINIMO_SEGUNDOS ||
             repeticoes == MAX_REPETICOES) {
@@ -196,7 +219,8 @@ static double medir_tempo_ms(FuncaoOrdenacao ordenar, const int *original,
         repeticoes *= 2;
     } while (repeticoes <= MAX_REPETICOES);
 
-    tempo_copias = medir_copias(original, copia, tamanho, repeticoes);
+    tempo_copias = medir_tempo_das_copias(
+        original, copia, tamanho, repeticoes);
     tempo_ordenacao = tempo_total - tempo_copias;
     if (tempo_ordenacao < 0.0) {
         tempo_ordenacao = 0.0;
@@ -212,6 +236,10 @@ static double medir_tempo_ms(FuncaoOrdenacao ordenar, const int *original,
 
     free(copia);
     *repeticoes_usadas = repeticoes;
+    /*
+     * Alteracao solicitada nos itens 2 e 5:
+     * segundos * 1000 = milissegundos.
+     */
     return (tempo_ordenacao * 1000.0) / repeticoes;
 }
 

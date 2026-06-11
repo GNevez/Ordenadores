@@ -25,11 +25,19 @@ A funcao disponibilizada no AVA utiliza `clock()` para obter o instante
 inicial e final. O tempo em segundos e calculado por:
 
 ```c
+clock_t inicio, fim;
+double tempo_cpu;
+
+inicio = clock();
+/* trecho de codigo medido */
+fim = clock();
+
 tempo_cpu = ((double)(fim - inicio)) / CLOCKS_PER_SEC;
 ```
 
-Para tornar o resultado mais representativo para uma pessoa, o programa
-converteu o valor para milissegundos:
+Esse mesmo bloco foi incorporado a funcao
+`medir_lote_com_funcao_do_ava`. Para tornar o resultado mais representativo
+para uma pessoa, o programa converteu o valor para milissegundos:
 
 ```c
 tempo_ms = tempo_cpu * 1000.0;
@@ -75,6 +83,21 @@ Em cada tamanho, todos os algoritmos receberam uma copia do mesmo vetor.
 Os tempos foram obtidos nesta maquina e podem variar conforme processador,
 sistema operacional, compilador, otimizacoes e processos em segundo plano.
 
+### Observacao sobre a variacao dos tempos
+
+Os tempos de execucao podem variar cada vez que o programa e executado,
+mesmo quando os vetores gerados sao iguais. Essa variacao pode ser causada
+pela carga do processador, processos executados em segundo plano, sistema
+operacional, gerenciamento de memoria, uso da memoria cache, temperatura e
+frequencia do processador, compilador e nivel de otimizacao utilizado.
+
+Por esse motivo, nao e esperado que todas as execucoes produzam exatamente
+os mesmos valores. O grafico e fiel aos resultados registrados no arquivo
+`resultados.csv` no momento em que ele foi gerado, mas pode nao coincidir
+com os valores apresentados por uma execucao posterior. Se os testes forem
+executados novamente, o arquivo CSV e o grafico tambem devem ser gerados
+novamente para representar os novos resultados.
+
 ## 6. Grafico
 
 ![Grafico dos tempos](grafico_tempos.svg)
@@ -109,3 +132,16 @@ Portanto, Merge Sort e Quick Sort sao escolhas mais adequadas para grandes
 volumes de dados. A entrada tambem influencia o resultado: o Quick Sort
 pode chegar a O(n^2) dependendo da escolha dos pivos, enquanto o Merge Sort
 mantem O(n log n) em todos os casos.
+
+## 9. Verificacao dos requisitos
+
+| Item | Situacao | Implementacao |
+|---:|---|---|
+| 1 | Cumprido | A funcao de tempo do AVA e chamada para Bubble, Merge e Quick Sort. Os tres algoritmos estao reunidos em um unico arquivo C. |
+| 2 | Cumprido | Os tres algoritmos recebem copias do mesmo vetor de 10 elementos. O tempo e convertido para milissegundos. |
+| 3 | Cumprido | Os tempos do vetor comum estao registrados na secao 4. |
+| 4 | Cumprido | O programa randomiza vetores de 100, 300, 500, 1.000 e 10.000 elementos. |
+| 5 | Cumprido | Cada algoritmo recebe uma copia do mesmo vetor randomizado e os resultados sao gravados em `resultados.csv`. |
+| 6 | Cumprido | O grafico de linhas apresenta os resultados. Colunas sao apenas uma preferencia do enunciado, nao uma obrigacao. |
+| 7 | Cumprido | Este relatorio descreve metodologia, resultados, grafico, analise e conclusao. |
+| 8 | Cumprido | O grafico e criado |
